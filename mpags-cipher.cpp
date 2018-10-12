@@ -6,6 +6,57 @@
 // For std::isalpha and std::isupper
 #include <cctype>
 
+//const char inputChar{'x'};
+
+// Separate function to transform the input into just alphabetic, uppercase characters
+std::string transformChar ( const char inputChar ) {
+	
+    std::string inputText{""};	
+
+    // Uppercase alphabetic characters
+    if (std::isalpha(inputChar)) {
+      inputText += std::toupper(inputChar);
+      //continue;
+    }
+
+    // Transliterate digits to English words
+    switch (inputChar) {
+      case '0':
+	inputText += "ZERO";
+	break;
+      case '1':
+	inputText += "ONE";
+	break;
+      case '2':
+	inputText += "TWO";
+	break;
+      case '3':
+	inputText += "THREE";
+	break;
+      case '4':
+	inputText += "FOUR";
+	break;
+      case '5':
+	inputText += "FIVE";
+	break;
+      case '6':
+	inputText += "SIX";
+	break;
+      case '7':
+	inputText += "SEVEN";
+	break;
+      case '8':
+	inputText += "EIGHT";
+	break;
+      case '9':
+	inputText += "NINE";
+	break;
+    }
+
+    return inputText;
+}
+
+
 // Main function of the mpags-cipher program
 int main(int argc, char* argv[])
 {
@@ -110,19 +161,23 @@ int main(int argc, char* argv[])
   // (until Return then CTRL-D (EOF) pressed)
   while(std::cin >> inputChar)
   {
+    
+    // Call the function to turn the input into alphabetic characters
+    std::string outputStr {transformChar(inputChar)}; 
+    inputText += outputStr;	
     // Uppercase alphabetic characters
-    if (std::isalpha(inputChar)) {
-      inputText += std::toupper(inputChar);
-      continue;
-    }
+//    if (std::isalpha(inputChar)) {
+  //    inputText += std::toupper(inputChar);
+    //  continue;
+   // }
 
     // Transliterate digits to English words
-    switch (inputChar) {
-      case '0':
-	inputText += "ZERO";
-	break;
-      case '1':
-	inputText += "ONE";
+    //switch (inputChar) {
+     // case '0':
+//	inputText += "ZERO";
+//	break;
+ //     case '1':
+/*	inputText += "ONE";
 	break;
       case '2':
 	inputText += "TWO";
@@ -152,7 +207,9 @@ int main(int argc, char* argv[])
 
     // If the character isn't alphabetic or numeric, DONT add it.
     // Our ciphers can only operate on alphabetic characters.
-  }
+*/  }
+
+
 
   // Output the transliterated text
   // Warn that output file option not yet implemented
