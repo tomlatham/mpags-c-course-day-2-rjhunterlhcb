@@ -6,53 +6,7 @@
 // For std::isalpha and std::isupper
 #include <cctype>
 
-// Separate function to transform the input into just alphabetic, uppercase characters
-std::string transformChar ( const char inputChar ) {
-	
-    std::string inputText{""};	
-
-    // Uppercase alphabetic characters
-    if (std::isalpha(inputChar)) {
-      inputText += std::toupper(inputChar);
-      //continue;
-    }
-
-    // Transliterate digits to English words
-    switch (inputChar) {
-      case '0':
-	inputText += "ZERO";
-	break;
-      case '1':
-	inputText += "ONE";
-	break;
-      case '2':
-	inputText += "TWO";
-	break;
-      case '3':
-	inputText += "THREE";
-	break;
-      case '4':
-	inputText += "FOUR";
-	break;
-      case '5':
-	inputText += "FIVE";
-	break;
-      case '6':
-	inputText += "SIX";
-	break;
-      case '7':
-	inputText += "SEVEN";
-	break;
-      case '8':
-	inputText += "EIGHT";
-	break;
-      case '9':
-	inputText += "NINE";
-	break;
-    }
-
-    return inputText;
-}
+std::string transformChar(const char in);
 
 // Function to process the command line arguments 
 bool processCommandLine(
@@ -198,3 +152,53 @@ int main(int argc, char* argv[])
   // and for consistency with other functions
   return 0;
 }
+
+// Separate function to transform the input into just alphabetic, uppercase characters
+std::string transformChar ( const char inputChar ) {
+	
+    std::string inputText{""};	
+
+    // Uppercase alphabetic characters
+    if (std::isalpha(inputChar)) {
+      inputText += std::toupper(inputChar);
+      //continue;
+    }
+
+    // Transliterate digits to English words
+    switch (inputChar) {
+      case '0':
+	inputText += "ZERO";
+	break;
+      case '1':
+	inputText += "ONE";
+	break;
+      case '2':
+	inputText += "TWO";
+	break;
+      case '3':
+	inputText += "THREE";
+	break;
+      case '4':
+	inputText += "FOUR";
+	break;
+      case '5':
+	inputText += "FIVE";
+	break;
+      case '6':
+	inputText += "SIX";
+	break;
+      case '7':
+	inputText += "SEVEN";
+	break;
+      case '8':
+	inputText += "EIGHT";
+	break;
+      case '9':
+	inputText += "NINE";
+	break;
+    }
+
+    return inputText;
+}
+
+
