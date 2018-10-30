@@ -7,6 +7,7 @@
 // For std::isalpha and std::isupper
 #include <cctype>
 
+// This function is declared here and defined under main() just to show it can be done.
 std::string transformChar(const char in);
 
 std::string readFromFile(const std::string& inputFile) {
@@ -23,8 +24,11 @@ std::string readFromFile(const std::string& inputFile) {
   		 std::string outputStr {transformChar(inputChar)}; 
   		 outputText += outputStr;	
  	  }
+      } else {
+	  // If the file doesn't actually exist 
+	  std::cout << "[error] File was not ok to read. Does file exist?" <<std::endl;
+      	  return 0;	
       }
-      //std::cout << inputText << std::endl;
       return outputText; 
 }
 
@@ -63,7 +67,7 @@ bool processCommandLine(
       helpRequested = true;
     }
     else if (cmdLineArgs[i] == "--version") {
-      std::cout << "Testing!" << std::endl;
+      //std::cout << "Testing!" << std::endl;
       versionRequested = true;
     }
     else if (cmdLineArgs[i] == "-i") {
@@ -170,11 +174,8 @@ int main(int argc, char* argv[])
   // Output the transliterated text
   if (!outputFile.empty()) {
       writeToFile(outputText, outputFile);
-     // std::ofstream out_file {outputFile};
-     // bool ok_to_write = out_file.good();
   }
-  else {
-     // Print to the console instead
+  else {   // Print to the console instead
      std::cout << outputText << std::endl;
   }
   // No requirement to return from main, but we do so for clarity
