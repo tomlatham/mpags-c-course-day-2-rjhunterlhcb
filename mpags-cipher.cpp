@@ -2,11 +2,38 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <fstream>
 
 // For std::isalpha and std::isupper
 #include <cctype>
 
 std::string transformChar(const char in);
+
+std::string readFromFile(const std::string& inputFile) {
+      std::ifstream in_file {inputFile}; 
+      bool ok_to_read = in_file.good(); // Checks if the infile exists
+      std::string inputText{""};
+             
+      if (ok_to_read) {
+	  char inputChar {'x'};
+ 	  while(in_file >> inputChar)  {
+	         // Call the function to turn the input into alphabetic characters
+  		 std::string outputStr {transformChar(inputChar)}; 
+  		 inputText += outputStr;	
+ 	  }
+      }
+      std::cout << inputText << std::endl;
+      return inputText; 
+}
+
+void writeToFile(const std::string& outputText, const std::string& outputFile) {
+	std::ofstream out_file {outputFile};
+	bool ok_to_write = out_file.good(); // Checks if the outfile exists
+	if (ok_to_write) {
+		out_file << outputText;
+		std::cout << "Written successfully to " << outputFile << std::endl;
+	}
+} 
 
 // Function to process the command line arguments 
 bool processCommandLine(
@@ -34,6 +61,7 @@ bool processCommandLine(
       helpRequested = true;
     }
     else if (cmdLineArgs[i] == "--version") {
+      std::cout << "Testing!" << std::endl;
       versionRequested = true;
     }
     else if (cmdLineArgs[i] == "-i") {
@@ -87,7 +115,7 @@ bool processCommandLine(
       << "                   Stdout will be used if not supplied\n\n";
     // Help requires no further action, so return from main
     // with 0 used to indicate success
-    return true;
+    return 0;
   }
 
   // Handle version, if requested
@@ -114,7 +142,7 @@ int main(int argc, char* argv[])
   // Process the command line arguments and check if it went through OK. Kill if not. 
   bool status {processCommandLine(cmdLineArgs, helpRequested, versionRequested, inputFile, outputFile)};
   if (status==false) {
-	return 0; 
+	return 1; 
   } 
 
   // Initialise variables for processing input text
@@ -124,30 +152,29 @@ int main(int argc, char* argv[])
   // Read in user input from stdin/file
   // Warn that input file option not yet implemented
   if (!inputFile.empty()) {
-    std::cout << "[warning] input from file ('"
-              << inputFile
-              << "') not implemented yet, using stdin\n";
+      inputText = readFromFile(inputFile);
   }
-
-  // Loop over each character from user input
-  // (until Return then CTRL-D (EOF) pressed)
-  while(std::cin >> inputChar)
-  {
-    // Call the function to turn the input into alphabetic characters
-    std::string outputStr {transformChar(inputChar)}; 
-    inputText += outputStr;	
+  else {
+     // Use the command line output 
+     // Loop over each character from user input
+     // (until Return then CTRL-D (EOF) pressed)
+     while(std::cin >> inputChar)
+     {
+          // Call the function to turn the input into alphabetic characters
+          std::string outputStr {transformChar(inputChar)}; 
+          inputText += outputStr;	
+     }
   }
-
   // Output the transliterated text
-  // Warn that output file option not yet implemented
   if (!outputFile.empty()) {
-    std::cout << "[warning] output to file ('"
-              << outputFile
-              << "') not implemented yet, using stdout\n";
+      writeToFile(inputText, outputFile);
+     // std::ofstream out_file {outputFile};
+     // bool ok_to_write = out_file.good();
   }
-
-  std::cout << inputText << std::endl;
-
+  else {
+     // Print to the console instead
+     std::cout << inputText << std::endl;
+  }
   // No requirement to return from main, but we do so for clarity
   // and for consistency with other functions
   return 0;
