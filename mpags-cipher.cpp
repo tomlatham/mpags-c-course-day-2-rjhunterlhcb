@@ -10,20 +10,22 @@
 std::string transformChar(const char in);
 
 std::string readFromFile(const std::string& inputFile) {
+      // This function reads in characters from inputFile, passes them to be transformed,
+      // and returns the result in a string
       std::ifstream in_file {inputFile}; 
       bool ok_to_read = in_file.good(); // Checks if the infile exists
-      std::string inputText{""};
-             
+      std::string outputText{""};
+      
       if (ok_to_read) {
 	  char inputChar {'x'};
  	  while(in_file >> inputChar)  {
 	         // Call the function to turn the input into alphabetic characters
   		 std::string outputStr {transformChar(inputChar)}; 
-  		 inputText += outputStr;	
+  		 outputText += outputStr;	
  	  }
       }
-      std::cout << inputText << std::endl;
-      return inputText; 
+      //std::cout << inputText << std::endl;
+      return outputText; 
 }
 
 void writeToFile(const std::string& outputText, const std::string& outputFile) {
@@ -147,12 +149,12 @@ int main(int argc, char* argv[])
 
   // Initialise variables for processing input text
   char inputChar {'x'};
-  std::string inputText {""};
-
+  //std::string inputText {""};
+  std::string outputText {""};
   // Read in user input from stdin/file
   // Warn that input file option not yet implemented
   if (!inputFile.empty()) {
-      inputText = readFromFile(inputFile);
+      outputText = readFromFile(inputFile);
   }
   else {
      // Use the command line output 
@@ -162,18 +164,18 @@ int main(int argc, char* argv[])
      {
           // Call the function to turn the input into alphabetic characters
           std::string outputStr {transformChar(inputChar)}; 
-          inputText += outputStr;	
+          outputText += outputStr;	
      }
   }
   // Output the transliterated text
   if (!outputFile.empty()) {
-      writeToFile(inputText, outputFile);
+      writeToFile(outputText, outputFile);
      // std::ofstream out_file {outputFile};
      // bool ok_to_write = out_file.good();
   }
   else {
      // Print to the console instead
-     std::cout << inputText << std::endl;
+     std::cout << outputText << std::endl;
   }
   // No requirement to return from main, but we do so for clarity
   // and for consistency with other functions
