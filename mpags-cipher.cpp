@@ -10,6 +10,9 @@
 // This function is declared here and defined under main() just to show it can be done.
 std::string transformChar(const char in);
 
+// This function will take over. Doing everything very soon. 
+std::string runCaesarCipher(const std::string& inputString, const float key, const bool encrypt);
+
 std::string readFromFile(const std::string& inputFile) {
       // This function reads in characters from inputFile, passes them to be transformed,
       // and returns the result in a string
@@ -46,6 +49,8 @@ bool processCommandLine(
 	const std::vector<std::string>& cmdLineArgs, 
 	bool& helpRequested, 
 	bool& versionRequested,
+	bool& encrypt,
+        float& key,
 	std::string& inputFile,
 	std::string& outputFile ) 
 {
@@ -98,6 +103,28 @@ bool processCommandLine(
 	++i;
       }
     }
+    else if (cmdLineArgs[i] == "-e") {
+        encrypt = true;
+    }
+    else if (cmdLineArgs[i] == "-d") {
+    	encrypt = false;
+//	std::cout << "[-d]	Set to decrypt mode." << std::endl;
+    }
+    else if (cmdLineArgs[i] == "-k") {
+	if (i == nCmdLineArgs-1) {
+		std::cerr << "[error] -k requires a key argument" << std::endl;
+		// exit main with non-zero return to indicate failure
+		return false;
+        }
+    	else {
+	// Got key, so assign value and advance past it
+		key = std::stof(cmdLineArgs[i+1]);
+		std::cout << key << std::endl;
+		++i;
+        }
+
+    }
+
     else {
       // Have an unknown flag to output error message and return non-zero
       // exit status to indicate failure
@@ -118,7 +145,9 @@ bool processCommandLine(
       << "  -i FILE          Read text to be processed from FILE\n"
       << "                   Stdin will be used if not supplied\n\n"
       << "  -o FILE          Write processed text to FILE\n"
-      << "                   Stdout will be used if not supplied\n\n";
+      << "                   Stdout will be used if not supplied\n\n"
+      << "  -e 		     Set to ENCRYPT mode\n\n"
+      << "  -d		     Set to DECRYPT mode\n\n";
     // Help requires no further action, so return from main
     // with 0 used to indicate success
     return 0;
@@ -142,21 +171,26 @@ int main(int argc, char* argv[])
 
   bool helpRequested {false};
   bool versionRequested {false};
+  bool encrypt {true};
+  float key {0};
   std::string inputFile {""};
   std::string outputFile {""};
+  std::string cipherString {"AB"};
   
   // Process the command line arguments and check if it went through OK. Kill if not. 
-  bool status {processCommandLine(cmdLineArgs, helpRequested, versionRequested, inputFile, outputFile)};
+  bool status {processCommandLine(cmdLineArgs, helpRequested, versionRequested, encrypt, key, inputFile, outputFile)};
   if (status==false) {
 	return 1; 
   } 
-
+  std::cout << inputFile << std::endl;
+  std::cout << key << std::endl;
+ //float key {4};
+  
   // Initialise variables for processing input text
   char inputChar {'x'};
-  //std::string inputText {""};
   std::string outputText {""};
+  
   // Read in user input from stdin/file
-  // Warn that input file option not yet implemented
   if (!inputFile.empty()) {
       outputText = readFromFile(inputFile);
   }
@@ -171,13 +205,18 @@ int main(int argc, char* argv[])
           outputText += outputStr;	
      }
   }
+
+  // Take the output and put it through the Cipher
+  cipherString = runCaesarCipher(outputText, key, encrypt);	
+  
   // Output the transliterated text
   if (!outputFile.empty()) {
-      writeToFile(outputText, outputFile);
+      writeToFile(cipherString, outputFile);
   }
   else {   // Print to the console instead
-     std::cout << outputText << std::endl;
+     std::cout << cipherString << std::endl;
   }
+  
   // No requirement to return from main, but we do so for clarity
   // and for consistency with other functions
   return 0;
@@ -231,4 +270,49 @@ std::string transformChar ( const char inputChar ) {
     return inputText;
 }
 
+//Definition of the Caesar Cipher function
+std::string runCaesarCipher(const std::string& inputString, float key, const bool encrypt) {
+	
+	typedef std::string::size_type size_type;
 
+	// Take in the input text, the key and whether we're in encrypt or decrypt mode
+	std::string outputString {""};
+	const std::string alphabet {"ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
+
+	// Needs to be tested on non-alphanumeric characters
+
+	// Deal with the encrypt/decrypt -----------------
+	if (!encrypt) { key = -1.0 * key; }
+	//std::cout << key << "\n";
+	// this will then mean we only have to write one set of loops below that will deal with both
+	// they'll step in +ve or -ve steps depending on sign of key
+
+	float indx_in {0}, indx_out {0};
+	for (size_type i{0}; i<inputString.size(); ++i) {
+		// For each character in the string, find the corresponding letter in the container. 
+		for (size_type j{0}; j<alphabet.size(); ++j) {
+			if (alphabet[j]==inputString[i]) {
+				indx_in = j;
+				indx_out = indx_in + key;
+		
+				//std::cout << alphabet[j] << std::endl;
+				//std::cout << indx_in << "," << indx_out << std::endl; 
+				
+				if (0 <= indx_out && indx_out <= 25) {
+					outputString += alphabet[indx_out];
+				} else if (indx_out > 25) {
+					indx_out -= 26;
+					//std::cout << indx_out << std::endl;
+					outputString += alphabet[indx_out];
+				} else if (indx_out < 0) {
+					outputString += alphabet[indx_out + 26];
+				}
+			}
+		}
+	
+	}  
+	//std::cout << outputString << std::endl;
+
+	// The only way you can break this is if a key > 26 is input. In command line args bit, throw error if not between 0 and 26 
+	return outputString;
+}
