@@ -108,7 +108,6 @@ bool processCommandLine(
     }
     else if (cmdLineArgs[i] == "-d") {
     	encrypt = false;
-//	std::cout << "[-d]	Set to decrypt mode." << std::endl;
     }
     else if (cmdLineArgs[i] == "-k") {
 	if (i == nCmdLineArgs-1) {
@@ -117,9 +116,11 @@ bool processCommandLine(
 		return false;
         }
     	else {
-	// Got key, so assign value and advance past it
-		key = std::stof(cmdLineArgs[i+1]);
-		std::cout << key << std::endl;
+		// Got key, so assign value and advance past it
+		key = std::stof(cmdLineArgs[i+1]);	// This line converts to float
+		if (key <= 0 || key >= 26) {
+			std::cerr << "[error] enter a key between 1 and 25" << std::endl;
+			return false; }
 		++i;
         }
 
@@ -147,7 +148,8 @@ bool processCommandLine(
       << "  -o FILE          Write processed text to FILE\n"
       << "                   Stdout will be used if not supplied\n\n"
       << "  -e 		     Set to ENCRYPT mode\n\n"
-      << "  -d		     Set to DECRYPT mode\n\n";
+      << "  -d		     Set to DECRYPT mode\n\n"
+      << "  -k KEY	     Specify cipher key. Enter number between 1 and 25\n\n";
     // Help requires no further action, so return from main
     // with 0 used to indicate success
     return 0;
@@ -182,9 +184,6 @@ int main(int argc, char* argv[])
   if (status==false) {
 	return 1; 
   } 
-  std::cout << inputFile << std::endl;
-  std::cout << key << std::endl;
- //float key {4};
   
   // Initialise variables for processing input text
   char inputChar {'x'};
@@ -230,7 +229,6 @@ std::string transformChar ( const char inputChar ) {
     // Uppercase alphabetic characters
     if (std::isalpha(inputChar)) {
       inputText += std::toupper(inputChar);
-      //continue;
     }
 
     // Transliterate digits to English words
@@ -272,20 +270,16 @@ std::string transformChar ( const char inputChar ) {
 
 //Definition of the Caesar Cipher function
 std::string runCaesarCipher(const std::string& inputString, float key, const bool encrypt) {
-	
+
+	// For convenience again
 	typedef std::string::size_type size_type;
 
 	// Take in the input text, the key and whether we're in encrypt or decrypt mode
 	std::string outputString {""};
 	const std::string alphabet {"ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
 
-	// Needs to be tested on non-alphanumeric characters
-
-	// Deal with the encrypt/decrypt -----------------
+	// Deal with the encrypt/decrypt: they'll step in +ve or -ve steps depending on sign of key
 	if (!encrypt) { key = -1.0 * key; }
-	//std::cout << key << "\n";
-	// this will then mean we only have to write one set of loops below that will deal with both
-	// they'll step in +ve or -ve steps depending on sign of key
 
 	float indx_in {0}, indx_out {0};
 	for (size_type i{0}; i<inputString.size(); ++i) {
@@ -294,25 +288,17 @@ std::string runCaesarCipher(const std::string& inputString, float key, const boo
 			if (alphabet[j]==inputString[i]) {
 				indx_in = j;
 				indx_out = indx_in + key;
-		
-				//std::cout << alphabet[j] << std::endl;
-				//std::cout << indx_in << "," << indx_out << std::endl; 
-				
+			
+				// The following code deals with the wrap-around	
 				if (0 <= indx_out && indx_out <= 25) {
 					outputString += alphabet[indx_out];
 				} else if (indx_out > 25) {
-					indx_out -= 26;
-					//std::cout << indx_out << std::endl;
-					outputString += alphabet[indx_out];
+					outputString += alphabet[indx_out - 26];
 				} else if (indx_out < 0) {
-					outputString += alphabet[indx_out + 26];
-				}
+					outputString += alphabet[indx_out + 26];}
 			}
-		}
-	
+		}	
 	}  
-	//std::cout << outputString << std::endl;
 
-	// The only way you can break this is if a key > 26 is input. In command line args bit, throw error if not between 0 and 26 
 	return outputString;
 }
