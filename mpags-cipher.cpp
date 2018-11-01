@@ -11,7 +11,7 @@
 std::string transformChar(const char in);
 
 // This function will take over. Doing everything very soon. 
-std::string runCaesarCipher(const std::string& inputString, const float key, const bool encrypt);
+std::string runCaesarCipher(const std::string& inputString, const size_t key, const bool encrypt);
 
 std::string readFromFile(const std::string& inputFile) {
       // This function reads in characters from inputFile, passes them to be transformed,
@@ -29,8 +29,8 @@ std::string readFromFile(const std::string& inputFile) {
  	  }
       } else {
 	  // If the file doesn't actually exist 
-	  std::cout << "[error] File was not ok to read. Does file exist?" <<std::endl;
-      	  return 0;	
+	  std::cerr << "[error] File was not ok to read. Does file exist?" <<std::endl;
+      	  return "";	
       }
       return outputText; 
 }
@@ -41,6 +41,8 @@ void writeToFile(const std::string& outputText, const std::string& outputFile) {
 	if (ok_to_write) {
 		out_file << outputText;
 		std::cout << "Written successfully to " << outputFile << std::endl;
+	} else {
+	    	std::cerr << "[error] File was not ok to write. Does file exist?" <<std::endl;
 	}
 } 
 
@@ -50,7 +52,7 @@ bool processCommandLine(
 	bool& helpRequested, 
 	bool& versionRequested,
 	bool& encrypt,
-        float& key,
+        size_t& key,
 	std::string& inputFile,
 	std::string& outputFile ) 
 {
@@ -70,10 +72,12 @@ bool processCommandLine(
 
     if (cmdLineArgs[i] == "-h" || cmdLineArgs[i] == "--help") {
       helpRequested = true;
+      break;
     }
     else if (cmdLineArgs[i] == "--version") {
       //std::cout << "Testing!" << std::endl;
       versionRequested = true;
+      break;
     }
     else if (cmdLineArgs[i] == "-i") {
       // Handle input file option
@@ -117,10 +121,11 @@ bool processCommandLine(
         }
     	else {
 		// Got key, so assign value and advance past it
-		key = std::stof(cmdLineArgs[i+1]);	// This line converts to float
-		if (key <= 0 || key >= 26) {
-			std::cerr << "[error] enter a key between 1 and 25" << std::endl;
-			return false; }
+		if (cmdLineArgs[i+1].front() == '-') {
+			std::cerr << "[error] enter a positive integer key" << std::endl;
+			return false;
+		}
+		key = std::stoul(cmdLineArgs[i+1]);
 		++i;
         }
 
@@ -134,6 +139,29 @@ bool processCommandLine(
     }
   }
 
+  return true;
+}
+
+// Main function of the mpags-cipher program
+int main(int argc, char* argv[])
+{
+  // Convert the command-line arguments into a more easily usable form
+  const std::vector<std::string> cmdLineArgs {argv, argv+argc};
+
+  bool helpRequested {false};
+  bool versionRequested {false};
+  bool encrypt {true};
+  size_t key {0};
+  std::string inputFile {""};
+  std::string outputFile {""};
+  std::string cipherString {""};
+  
+  // Process the command line arguments and check if it went through OK. Kill if not. 
+  bool status {processCommandLine(cmdLineArgs, helpRequested, versionRequested, encrypt, key, inputFile, outputFile)};
+  if (status==false) {
+	return 1; 
+  } 
+  
   // Handle help, if requested
   if (helpRequested) {
     // Line splitting for readability
@@ -162,29 +190,7 @@ bool processCommandLine(
     std::cout << "0.1.0" << std::endl;
     return 0;
   }
-  return true;
-}
 
-// Main function of the mpags-cipher program
-int main(int argc, char* argv[])
-{
-  // Convert the command-line arguments into a more easily usable form
-  const std::vector<std::string> cmdLineArgs {argv, argv+argc};
-
-  bool helpRequested {false};
-  bool versionRequested {false};
-  bool encrypt {true};
-  float key {0};
-  std::string inputFile {""};
-  std::string outputFile {""};
-  std::string cipherString {"AB"};
-  
-  // Process the command line arguments and check if it went through OK. Kill if not. 
-  bool status {processCommandLine(cmdLineArgs, helpRequested, versionRequested, encrypt, key, inputFile, outputFile)};
-  if (status==false) {
-	return 1; 
-  } 
-  
   // Initialise variables for processing input text
   char inputChar {'x'};
   std::string outputText {""};
@@ -269,7 +275,7 @@ std::string transformChar ( const char inputChar ) {
 }
 
 //Definition of the Caesar Cipher function
-std::string runCaesarCipher(const std::string& inputString, float key, const bool encrypt) {
+std::string runCaesarCipher(const std::string& inputString, const size_t key, const bool encrypt) {
 
 	// For convenience again
 	typedef std::string::size_type size_type;
@@ -277,25 +283,20 @@ std::string runCaesarCipher(const std::string& inputString, float key, const boo
 	// Take in the input text, the key and whether we're in encrypt or decrypt mode
 	std::string outputString {""};
 	const std::string alphabet {"ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
+	const size_type alphabetSize {alphabet.size()};
 
-	// Deal with the encrypt/decrypt: they'll step in +ve or -ve steps depending on sign of key
-	if (!encrypt) { key = -1.0 * key; }
+	// Make sure that the key is in the range 0 - 25
+	const size_t truncatedKey { key % alphabetSize };
 
-	float indx_in {0}, indx_out {0};
-	for (size_type i{0}; i<inputString.size(); ++i) {
+	for ( const auto& elem : inputString ) {
 		// For each character in the string, find the corresponding letter in the container. 
-		for (size_type j{0}; j<alphabet.size(); ++j) {
-			if (alphabet[j]==inputString[i]) {
-				indx_in = j;
-				indx_out = indx_in + key;
-			
-				// The following code deals with the wrap-around	
-				if (0 <= indx_out && indx_out <= 25) {
-					outputString += alphabet[indx_out];
-				} else if (indx_out > 25) {
-					outputString += alphabet[indx_out - 26];
-				} else if (indx_out < 0) {
-					outputString += alphabet[indx_out + 26];}
+		for (size_type j{0}; j<alphabetSize; ++j) {
+			if (alphabet[j]==elem) {
+				if ( encrypt ) {
+					outputString += alphabet[ ( j + truncatedKey ) % alphabetSize ];
+				} else {
+					outputString += alphabet[ ( j + alphabetSize - truncatedKey ) % alphabetSize ];
+				}
 			}
 		}	
 	}  
